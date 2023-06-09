@@ -1,0 +1,157 @@
+---
+title: "Tüketci Fiyat Endeksi Büyüme Oranı, Likit Yükümlülükler, Reel Efektif Döviz Kurunun Gayri Safi Yurtiçi Hasılaya Etkileri"
+author: 
+  - Hatice Kevser Akçelik
+bibliography: ../bibliography/biblio.bib
+csl: ../csl/apa-tr.csl
+header-includes:
+  - \usepackage{polyglossia}
+  - \setmainlanguage{turkish}
+  - \usepackage{booktabs}
+  - \usepackage{caption} 
+  - \captionsetup[table]{skip=10pt}
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+    fig_height: 3
+    fig_width: 4
+    keep_tex: no
+    latex_engine: xelatex
+    number_sections: yes
+    toc: no
+geometry: margin=1in
+link-citations: yes
+urlcolor: blue
+fontsize: 12pt
+biblio-style: apalike
+abstract: |
+  Bir çoklu doğrusal regresyon modeli oluşturarak TÜFE büyüme oranı, likit yükümlülükler ve reel efektif döviz kurunun gayri safi yurtiçi hasılaya etkisini gözlemleyeceğiz.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = FALSE, echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+<!-- ======================================================================= -->
+
+<!-- ============================== NOTLAR ================================= -->
+
+<!-- ======================================================================= -->
+
+# Final Hakkında Önemli Bilgiler
+
+\colorbox{BurntOrange}{https://github.com/HaticeKevser/HaticeFinal}
+
+**Proje gönderimi, Github repo linki ile birlikte ekampus sistemine bir zip dosyası yüklenerek yapılacaktır. Sisteme zip dosyası yüklemezseniz ve Github repo linki vermezseniz ara sınav ve final sınavlarına girmemiş sayılırsınız.**
+
+**Proje klasörünüzü sıkıştırdıktan sonra (`OgrenciNumarasi.zip` dosyası) 9 Haziran 2023 23:59'a kadar *ekampus.ankara.edu.tr* adresine yüklemeniz gerekmektedir.**
+
+\colorbox{WildStrawberry}{Daha fazla bilgi için proje klasöründeki README.md dosyasını okuyunuz.}
+
+# Giriş
+
+
+
+## Çalışmanın Amacı
+
+Çalışmamışz, kullanmış olduğuğumuz üç parametrenin Türkiye'nin gayri safi yurtiçi hasılaya etkisini açıklamaktadır.
+
+## Literatür
+
+Gayri safi yurtiçi hasıla; bir ekonomide, belirli bir dönemde  gerçekleşen tüm nihai mal ve hizmet üretiminin toplam değeridir.
+
+Tüketici Fiyat Endeksi (TÜFE), hanehalklarının tüketim harcamalarına konu olan mal ve hizmetlere ilişkin fiyatların genel düzeyinde zaman içinde meydana gelen değişimin göstergesidir. (https://www.tuik.gov.tr) 
+
+Likit yükümlülükler: Yani geniş para arzı(M3), M1'e vadeli mevduatlar, repodan sağlanan fonlar, para piyasası fonları ve vadesi 2 yıla kadar olan ihraç edilen menkul kıymetler eklenerek elde edilmektedir. (https://evds2.tcmb.gov.tr)
+
+Reel efektif döviz kuru : Ülkeler arası göreceli fiyat değişiklikleri dikkate alınarak hesaplanan döviz kurudur. (https://acikders.ankara.edu.tr )
+
+# Veri
+
+Federal Reserve Economic Data'dan dört adet veri seti aldım. Bunlar:
+
+Gross Domestic Product for Turkey (World Bank, Gross Domestic Product for Turkey [MKTGDPTRA646NWDB], retrieved from FRED, Federal Reserve Bank of St. Louis; https://fred.stlouisfed.org/series/MKTGDPTRA646NWDB, June 9, 2023.)
+
+Real Effective Exchange Rates Based on Manufacturing Consumer Price Index for Turkey, Index 2015=100, Not Seasonally Adjusted. (Organization for Economic Co-operation and Development, Real Effective Exchange Rates Based on Manufacturing Consumer Price Index for Turkey [CCRETT01TRM661N], retrieved from FRED, Federal Reserve Bank of St. Louis; https://fred.stlouisfed.org/series/CCRETT01TRM661N, June 9, 2023.)
+
+Liquid Liabilities (Broad Money) for Turkey, Millions of 2000 Dollars, Not Seasonally Adjusted. (World Bank, Liquid Liabilities (Broad Money) for Turkey [DDOI07TRA648NWDB], retrieved from FRED, Federal Reserve Bank of St. Louis; https://fred.slouisfed.org/series/DDOI07TRA648NWDB, June 9, 2023.)
+
+Consumer Price Index: Total All Items for Turkey, Growth rate same period previous year, Not Seasonally Adjusted. (Organization for Economic Co-operation and Development, Consumer Price Index: Total All Items for Turkey [CPALTT01TRM659N], retrieved from FRED, Federal Reserve Bank of St. Louis; https://fred.stlouisfed.org/series/CPALTT01TRM659N, June 9, 2023.)
+
+Almış olduğum bu verileri yıllık hale getirip bir dosyada birleştirdim.
+
+
+
+```{r, echo=FALSE}
+
+install.packages('readxl', repos = "http://cran.us.r-project.org")
+library(readxl)
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+library(tidyverse)
+library(ggplot2)
+
+
+Statistics_data <- read_excel("C:/Users/USER/Desktop/HaticeFinal/data/Statistics_data.xlsx")
+View(Statistics_data)
+plot(Statistics_data)
+
+
+```
+
+
+
+```{r, echo=FALSE}
+library(xtable) 
+# devtools::install_github("emraher/summarytools")
+library(summarytools)
+st_options(lang = "tr")
+```
+
+
+
+
+# Yöntem ve Veri Analizi
+
+
+Tüketici fiyat endeksi büyüme oranı, likit yükümlülükler ve reel efektif döviz kurunun gayri safi yurtiçi hasılaya etkisini ölçmek için aşağıda verilen çoklu doğrusal regresyonu analiz ediyoruz. Burada bağımsız değişkenlerimiz: Tüketici fiyat endeksi büyüme oranı, likit yükümlülükler ve reel efektif döviz kuru, katsayıları ise sırasıyla beta1, beta2, beta3. Intercept term beta0 ve bağımlı değişkenimiz ise dolar cinsinden gayri safi yurtiçi hasıladır.
+Model aşağıda verilmiştir.
+
+$$
+GDP_t = \beta_0 + \beta_1 CG + \beta_2 LL + \beta_3 Ex + \varepsilon_t
+
+$$
+
+```{r results='asis', echo=FALSE}
+reg1 <- lm(formula = GDP ~ CPI_Growth_Rate + Liquid_Liabilities + Real_Effective_Exchange_Rates, data = Statistics_data)
+
+summary(reg1)
+```
+```{r results='asis', echo=FALSE}
+ggplot(data = Statistics_data, mapping = aes(x = CPI_Growth_Rate, y = GDP))+
+  geom_point(color = "red", size = 2, alpha = 0.5)
+
+
+ggplot(data = Statistics_data, mapping = aes(x = Liquid_Liabilities, y = GDP))+
+  geom_point(color = "blue", size = 2, alpha = 0.5)
+
+ggplot(data = Statistics_data, mapping = aes(x = Real_Effective_Exchange_Rates, y = GDP))+
+  geom_point(color = "green", size = 2, alpha = 0.5)
+
+```
+
+# Sonuç
+
+Analizimizde R ve adjusted R değerimiz 0.98 çıkmıştır. Yani oluşturduğumuz model Gayri safi yurtiçi hasılayı %98 oranında açıklamaktadır.
+
+p değerlerimize göre, değeri 0.05 den küçük olduğu için likit yükümlülükler değişkeni istatistiksel olarak önemlidir. 
+
+**Kaynakça bölümü Rmarkdown tarafından otomatik olarak oluşturulmaktadır. Taslak dosyada Kaynakça kısmında herhangi bir değişikliğe gerek yoktur.**
+
+***Taslakta bu cümleden sonra yer alan hiçbir şey silinmemelidir.***
+
+\newpage
+
+# Kaynakça {#references}
+
+::: {#refs}
+:::
